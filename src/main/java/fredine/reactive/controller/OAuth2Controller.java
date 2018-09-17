@@ -12,6 +12,7 @@ import io.micronaut.http.HttpStatus;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.session.Session;
+import io.micronaut.session.annotation.SessionValue;
 import io.micronaut.views.View;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +21,9 @@ import javax.inject.Inject;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author dderose
@@ -41,13 +44,14 @@ public class OAuth2Controller {
 	@View("home")
 	@Get
 	public HttpResponse home() {
-		return HttpResponse.ok(CollectionUtils.mapOf("loggedIn", false));
+		return HttpResponse.ok(Collections.emptyMap());
 	}
 
 	@View("connected")
 	@Get("/connected")
-	public HttpResponse connected() {
-		return HttpResponse.ok();
+	public HttpResponse connected(@SessionValue Optional<String> givenName) {
+
+		return HttpResponse.ok(givenName.map(name -> CollectionUtils.mapOf("givenName", name)).orElse(Collections.emptyMap()));
 	}
 
 	@Get("/connectToQuickbooks")
@@ -82,8 +86,11 @@ public class OAuth2Controller {
 		try {
 			List<Scope> scopes = new ArrayList<Scope>();
 			scopes.add(Scope.OpenIdAll);
-			// todo: convert this one too
-			return HttpResponse.redirect(new URI(oauth2Config.prepareUrl(scopes, redirectUri, csrf)));
+            URI finalURI = new URI(oauth2Config.prepareUrl(scopes, redirectUri, csrf));
+            return HttpResponseFactory.INSTANCE.status(HttpStatus.FOUND)
+                    .headers((headers) ->
+                            headers.location(finalURI)
+                    );
 		} catch (URISyntaxException | InvalidRequestException e) {
 			logger.error("Exception calling signInWithIntuit ", e);
 		}

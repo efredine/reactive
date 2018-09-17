@@ -36,7 +36,7 @@ import java.util.Optional;
 @Controller("/")
 public class QBOController {
 
-	@Value("${intuit.account.api.host}")
+	@Value("${intuit.accounting.api.host}")
 	private String intuitAccountingAPIHost;
 
 	@Inject
@@ -127,15 +127,14 @@ public class QBOController {
 			logger.info("Companyinfo -> CompanyName: " + companyInfo.getCompanyName());
 			ObjectMapper mapper = new ObjectMapper();
 			try {
-				String jsonInString = mapper.writeValueAsString(companyInfo);
-				return jsonInString;
+				return mapper.writeValueAsString(companyInfo);
 			} catch (JsonProcessingException e) {
 				logger.error("Exception while getting company info ", e);
-				return new JSONObject().put("response",failureMsg).toString();
+				return new JSONObject().put("response", failureMsg).toString();
 			}
 			
 		}
-		return failureMsg;
+		return new JSONObject().put("response", failureMsg).toString();
 	}
 
 	private DataService getDataService(String realmId, String accessToken) throws FMSException {

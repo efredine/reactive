@@ -7,17 +7,25 @@ import com.intuit.oauth2.exception.OAuthException;
 import com.intuit.oauth2.exception.OpenIdException;
 import fredine.reactive.client.OAuth2PlatformClientFactory;
 import io.micronaut.context.annotation.Value;
+import io.micronaut.http.HttpRequest;
+import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.QueryValue;
+import io.micronaut.http.hateos.JsonError;
+import io.micronaut.http.hateos.Link;
 import io.micronaut.session.Session;
 import io.micronaut.session.annotation.SessionValue;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.micronaut.http.annotation.Error;
+
 import javax.inject.Inject;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Optional;
 
 
@@ -33,7 +41,7 @@ public class CallbackController {
     private static final Logger logger = LoggerFactory.getLogger(CallbackController.class);
 
     @Get("/oauth2redirect")
-    public String callBackFromOAuth(
+    public HttpResponse callBackFromOAuth(
             @QueryValue("code") String authCode,
             @QueryValue("state") String state,
             @QueryValue("realmId") Optional<String> realmId,
@@ -72,14 +80,18 @@ public class CallbackController {
 						logger.error("Exception validating id token ", e);
 					}
 	            }
-	            
-	            return "connected";
+	            URI redirectURI = new URIBuilder()
+                        .setPath("/connected")
+                        .build();
+	            return HttpResponse.redirect(redirectURI);
 	        }
 	        logger.info("csrf token mismatch " );
         } catch (OAuthException e) {
         	logger.error("Exception in callback handler ", e);
-		} 
-        return null;
+		} catch (URISyntaxException e) {
+            logger.error("Unexpected URI syntax error: ", e);
+        }
+        return HttpResponse.badRequest();
     }
 
     
@@ -98,5 +110,14 @@ public class CallbackController {
             logger.error("Exception while retrieving user info ", ex);
         }
     }
+
+//    @Error(global = true)
+//    public HttpResponse<JsonError> error(HttpRequest request, Throwable e) {
+//        JsonError error = new JsonError("Bad Things Happened: " + e.getMessage())
+//                .link(Link.SELF, Link.of(request.getUri()));
+//
+//        return HttpResponse.<JsonError>serverError()
+//                .body(error);
+//    }
 
 }

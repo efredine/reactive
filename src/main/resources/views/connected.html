@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <title>OAuth2 Sample App - Intuit</title>
-  <link rel="stylesheet" type="text/css" href="../static/css/style.css" th:href="@{css/style.css}"/>
+  <link rel="stylesheet" type="text/css" href="/static/css/style.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
   <script>
     if(window.opener) {
@@ -12,19 +12,19 @@
     function apiCall() {
       $("#result").html('Loading...')
       $.get("/getCompanyInfo", function(data) {
-        $("#result").html(data)
+        $("#result").html(JSON.stringify(data))
       })
     }
     function revokeCall() {
       $("#result").html('Loading...')
       $.get("/revokeToken", function(data) {
-        $("#result").html(data)
+        $("#result").html(JSON.stringify(data))
       })
     }
     function refreshCall() {
       $("#result").html('Loading...')
       $.get("/refreshToken", function(data) {
-        $("#result").html(data)
+        $("#result").html(JSON.stringify(data))
       })
     }
   </script>
@@ -32,7 +32,7 @@
 <body>
   <a href="/">Home</a>
   <h3>Connected!</h3>
-  <div th:with="firstPer=${session.givenName}">
+  <div th:with="firstPer=${givenName}">
 	
 	    <p>Welcome <span th:text="${firstPer}" />!</p>
   		<p>Would you like to make a sample API call?</p>
