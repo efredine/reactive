@@ -4,6 +4,8 @@ import com.intuit.oauth2.config.OAuth2Config;
 import com.intuit.oauth2.config.Scope;
 import com.intuit.oauth2.exception.InvalidRequestException;
 import fredine.reactive.client.OAuth2PlatformClientFactory;
+import fredine.reactive.client.SessionTokenStore;
+import fredine.reactive.client.TokenStore;
 import io.micronaut.context.annotation.Value;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.http.HttpResponse;
@@ -100,11 +102,12 @@ public class OAuth2Controller {
 
 	@Get("/getAppNow")
 	public HttpResponse getAppNow(Session session) {
+	    TokenStore tokenStore = new SessionTokenStore(session);
 		logger.info("inside getAppNow "  );
 		OAuth2Config oauth2Config = factory.getOAuth2Config();
 		
 		String csrf = oauth2Config.generateCSRFToken();
-		session.put("csrfToken", csrf);
+		tokenStore.setCSRFToken(csrf);
 
 		try {
 			List<Scope> scopes = new ArrayList<>();

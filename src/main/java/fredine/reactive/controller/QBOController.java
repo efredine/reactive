@@ -16,23 +16,23 @@ import com.intuit.oauth2.client.OAuth2PlatformClient;
 import com.intuit.oauth2.data.BearerTokenResponse;
 import com.intuit.oauth2.exception.OAuthException;
 import fredine.reactive.client.OAuth2PlatformClientFactory;
+import fredine.reactive.client.SessionTokenStore;
+import fredine.reactive.client.TokenStore;
 import io.micronaut.context.annotation.Value;
+import io.micronaut.http.HttpRequest;
+import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
+import io.micronaut.http.hateos.JsonError;
+import io.micronaut.http.hateos.Link;
 import io.micronaut.session.Session;
-import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.util.List;
-import java.util.Optional;
 
-/**
- * @author dderose
- *
- */
 @Controller("/")
 public class QBOController {
 
@@ -44,21 +44,18 @@ public class QBOController {
 	OAuth2PlatformClientFactory factory;
 	
 	private static final Logger logger = LoggerFactory.getLogger(QBOController.class);
-	
+
+	public class NoRealmIdException extends Exception {
+
+        NoRealmIdException() {
+            super("No realm ID in session.  QBO calls only work if the accounting scope was passed!");
+        }
+    }
 
     @Get("/getCompanyInfo")
-    public String callQBOCompanyInfo(Session session) {
-		Optional realmId = session.get("realmId");
-		if (!realmId.isPresent()) {
-			return new JSONObject().put("response","No realm ID in session.  QBO calls only work if the accounting scope was passed!").toString();
-		}
-		if (StringUtils.isEmpty((String)realmId.get())) {
-			return new JSONObject().put("response","Empty realm ID.  QBO calls only work if the accounting scope was passed!").toString();
-		}
-		Optional accessToken = session.get("access_token");
-		if (!accessToken.isPresent()) {
-			return new JSONObject().put("response","Unexpected error: no access token in session!").toString();
-		}
+    public String callQBOCompanyInfo(Session session) throws NoRealmIdException {
+        TokenStore tokenStore = new SessionTokenStore(session);
+        String realmId = tokenStore.getRealmId().orElseThrow(NoRealmIdException::new);
     	String failureMsg="Failed";
     	String url =  intuitAccountingAPIHost + "/v3/company";
         try {
@@ -67,7 +64,7 @@ public class QBOController {
         	Config.setProperty(Config.BASE_URL_QBO, url);
 
     		//get DataService
-    		DataService service = getDataService((String) realmId.get(), (String) accessToken.get());
+    		DataService service = getDataService(realmId, tokenStore.getAccessToken());
 			
 			// get all companyinfo
 			String sql = "select * from companyinfo";
@@ -86,19 +83,15 @@ public class QBOController {
 				//refresh tokens
 	        	logger.info("received 401 during companyinfo call, refreshing tokens now");
 	        	OAuth2PlatformClient client  = factory.getOAuth2PlatformClient();
-	        	Optional refreshToken = session.get("refresh_token");
-				if (!refreshToken.isPresent()) {
-					return new JSONObject().put("response","Unexpected error: no refresh token in session!").toString();
-				}
 	        	
 				try {
-					BearerTokenResponse bearerTokenResponse = client.refreshToken((String) refreshToken.get());
-					session.put("access_token", bearerTokenResponse.getAccessToken());
-		            session.put("refresh_token", bearerTokenResponse.getRefreshToken());
+					BearerTokenResponse bearerTokenResponse = client.refreshToken(tokenStore.getRefreshToken());
+					tokenStore.setAccessToken(bearerTokenResponse.getAccessToken());
+		            tokenStore.setRefreshToken(bearerTokenResponse.getRefreshToken());
 		            
 		            //call company info again using new tokens
 		            logger.info("calling companyinfo using new tokens");
-		            DataService service = getDataService((String) realmId.get(), (String) accessToken.get());
+		            DataService service = getDataService(realmId, tokenStore.getAccessToken());
 					
 					// get all companyinfo
 					String sql = "select * from companyinfo";
@@ -119,6 +112,16 @@ public class QBOController {
 				return new JSONObject().put("response",failureMsg).toString();
 			}
 		
+    }
+
+    @io.micronaut.http.annotation.Error(global = true)
+    public String error(HttpRequest request, Exception noRealmIdException) {
+        JsonError error = new JsonError("Bad Things Happened: " + noRealmIdException.getMessage());
+//                .link(Link.SELF, Link.of(request.getUri()));
+
+//        return HttpResponse.<JsonError>serverError()
+//                .body(error);
+        return error.toString();
     }
 
 	private String processResponse(String failureMsg, QueryResult queryResult) {
