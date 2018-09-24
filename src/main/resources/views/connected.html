@@ -3,44 +3,51 @@
 <head>
   <title>OAuth2 Sample App - Intuit</title>
   <link rel="stylesheet" type="text/css" href="/static/css/style.css"/>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
   <script>
     if(window.opener) {
-      window.opener.location.href = '/connected'
+      window.opener.location.href = '/connected';
       window.close()
     }
-    function apiCall() {
-      $("#result").html('Loading...')
-      $.get("/getCompanyInfo", function(data) {
-        $("#result").html(JSON.stringify(data))
-      })
+
+    function apiCall(url) {
+        const result = document.querySelector("#result");
+        result.textContent = 'Loading...';
+        fetch(url, {
+            'credentials': 'include'
+        }).then(function(response) {
+            return response.text();
+        }).then(function(text) {
+            result.textContent = text;
+        });
     }
+
+    function getCompanyInfo() {
+        apiCall('/getCompanyInfo');
+    }
+
     function revokeCall() {
-      $("#result").html('Loading...')
-      $.get("/revokeToken", function(data) {
-        $("#result").html(JSON.stringify(data))
-      })
+        apiCall('/revokeToken');
     }
+
     function refreshCall() {
-      $("#result").html('Loading...')
-      $.get("/refreshToken", function(data) {
-        $("#result").html(JSON.stringify(data))
-      })
+        apiCall('/refreshToken');
     }
+
   </script>
 </head>
 <body>
   <a href="/">Home</a>
   <h3>Connected!</h3>
+  <!--/*@thymesVar id="givenName" type="java.lang.String"*/-->
   <div th:with="firstPer=${givenName}">
 	
-	    <p>Welcome <span th:text="${firstPer}" />!</p>
+	    <p>Welcome <span th:text="${firstPer}" ></span>!</p>
   		<p>Would you like to make a sample API call?</p>
 	  
   </div>
   
   <div>
-    <button onclick="apiCall()">QuickBooks API Call</button>
+    <button onclick="getCompanyInfo()">QuickBooks API Call</button>
     <button onclick="refreshCall()">Refresh Token Call</button>
     <button onclick="revokeCall()">Revoke Token Call</button>
     <br /><br />

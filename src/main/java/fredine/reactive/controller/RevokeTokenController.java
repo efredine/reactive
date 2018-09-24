@@ -3,6 +3,8 @@ package fredine.reactive.controller;
 import com.intuit.oauth2.client.OAuth2PlatformClient;
 import com.intuit.oauth2.data.PlatformResponse;
 import fredine.reactive.client.OAuth2PlatformClientFactory;
+import fredine.reactive.client.SessionTokenStore;
+import fredine.reactive.client.TokenStore;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.session.Session;
@@ -28,14 +30,16 @@ public class RevokeTokenController {
 	
 
     @Get("/revokeToken")
-    public String revokeToken(@SessionValue("refresh_token") String refreshToken, Session session) {
-		
-    	String failureMsg="Failed";
+    public String revokeToken(Session session) {
+
+        TokenStore tokenStore = new SessionTokenStore(session);
+        String failureMsg="Failed";
     	      
         try {
 
         	OAuth2PlatformClient client  = factory.getOAuth2PlatformClient();
-        	PlatformResponse response  = client.revokeToken(refreshToken);
+            String refreshToken = tokenStore.getRefreshToken();
+            PlatformResponse response  = client.revokeToken(refreshToken);
             logger.info("raw result for revoke token request= " + response.getStatus());
             return new JSONObject().put("response", "Revoke successful").toString();
         }

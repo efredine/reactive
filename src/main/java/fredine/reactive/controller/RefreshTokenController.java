@@ -3,6 +3,8 @@ package fredine.reactive.controller;
 import com.intuit.oauth2.client.OAuth2PlatformClient;
 import com.intuit.oauth2.data.BearerTokenResponse;
 import fredine.reactive.client.OAuth2PlatformClientFactory;
+import fredine.reactive.client.SessionTokenStore;
+import fredine.reactive.client.TokenStore;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.session.Session;
@@ -27,20 +29,21 @@ public class RefreshTokenController {
 	
 
     @Get("/refreshToken")
-    public String refreshToken(@SessionValue("refresh_token") String refreshToken, Session session) {
-		
-    	String failureMsg="Failed";
+    public String refreshToken(Session session) {
+
+        TokenStore tokenStore = new SessionTokenStore(session);
+        String failureMsg="Failed";
  
         try {
         	
         	OAuth2PlatformClient client  = factory.getOAuth2PlatformClient();
+        	String refreshToken = tokenStore.getRefreshToken();
         	BearerTokenResponse bearerTokenResponse = client.refreshToken(refreshToken);
-            session.put("access_token", bearerTokenResponse.getAccessToken());
-            session.put("refresh_token", bearerTokenResponse.getRefreshToken());
-            String jsonString = new JSONObject()
+        	tokenStore.setAccessToken(bearerTokenResponse.getAccessToken());
+            tokenStore.setRefreshToken(bearerTokenResponse.getRefreshToken());
+            return new JSONObject()
                     .put("access_token", bearerTokenResponse.getAccessToken())
                     .put("refresh_token", bearerTokenResponse.getRefreshToken()).toString();
-            return jsonString;
         }
         catch (Exception ex) {
         	logger.error("Exception while calling refreshToken ", ex);
