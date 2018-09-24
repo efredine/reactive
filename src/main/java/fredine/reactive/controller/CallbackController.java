@@ -6,7 +6,6 @@ import com.intuit.oauth2.data.UserInfoResponse;
 import com.intuit.oauth2.exception.OAuthException;
 import com.intuit.oauth2.exception.OpenIdException;
 import fredine.reactive.client.OAuth2PlatformClientFactory;
-import fredine.reactive.client.SessionTokenStore;
 import fredine.reactive.client.TokenStore;
 import io.micronaut.context.annotation.Value;
 import io.micronaut.http.HttpResponse;
@@ -41,15 +40,15 @@ public class CallbackController {
             @QueryValue("code") String authCode,
             @QueryValue("state") String state,
             @QueryValue("realmId") Optional<String> realmId,
+            TokenStore tokenStore,
             Session session)
     {
         logger.info("inside oauth2redirect of sample"  );
-        TokenStore tokenStore = new SessionTokenStore(session);
         try {
 	        if (tokenStore.getCSRFToken().equals(state)) {
                 realmId.ifPresent(tokenStore::setRealmId);
 	            session.put("auth_code", authCode);
-	
+
 	            OAuth2PlatformClient client  = factory.getOAuth2PlatformClient();
 	            logger.info("inside oauth2redirect of sample -- redirectUri " + redirectUri  );
 	            BearerTokenResponse bearerTokenResponse = client.retrieveBearerTokens(authCode, redirectUri);

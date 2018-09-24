@@ -4,7 +4,6 @@ import com.intuit.oauth2.config.OAuth2Config;
 import com.intuit.oauth2.config.Scope;
 import com.intuit.oauth2.exception.InvalidRequestException;
 import fredine.reactive.client.OAuth2PlatformClientFactory;
-import fredine.reactive.client.SessionTokenStore;
 import fredine.reactive.client.TokenStore;
 import io.micronaut.context.annotation.Value;
 import io.micronaut.core.util.CollectionUtils;
@@ -13,7 +12,6 @@ import io.micronaut.http.HttpResponseFactory;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
-import io.micronaut.session.Session;
 import io.micronaut.session.annotation.SessionValue;
 import io.micronaut.views.View;
 import org.slf4j.Logger;
@@ -54,25 +52,24 @@ public class OAuth2Controller {
 	}
 
 	@Get("/connectToQuickbooks")
-	public HttpResponse connectToQuickbooks(Session session) {
+	public HttpResponse connectToQuickbooks(TokenStore tokenStore) {
 		logger.info("inside connectToQuickbooks ");
-		return getAuthorization(session, Collections.singletonList(Scope.Accounting));
+		return getAuthorization(tokenStore, Collections.singletonList(Scope.Accounting));
 	}
 
 	@Get("/signInWithIntuit")
-	public HttpResponse signInWithIntuit(Session session) {
+	public HttpResponse signInWithIntuit(TokenStore tokenStore) {
 		logger.info("inside signInWithIntuit ");
-		return getAuthorization(session, Collections.singletonList(Scope.OpenIdAll));
+		return getAuthorization(tokenStore, Collections.singletonList(Scope.OpenIdAll));
 	}
 
 	@Get("/getAppNow")
-	public HttpResponse getAppNow(Session session) {
+	public HttpResponse getAppNow(TokenStore tokenStore) {
         logger.info("inside getAppNow "  );
-        return getAuthorization(session, Arrays.asList(Scope.OpenIdAll, Scope.Accounting));
+        return getAuthorization(tokenStore, Arrays.asList(Scope.OpenIdAll, Scope.Accounting));
 	}
 
-	private HttpResponse getAuthorization(Session session, List<Scope> scopes) {
-        TokenStore tokenStore = new SessionTokenStore(session);
+	private HttpResponse getAuthorization(TokenStore tokenStore, List<Scope> scopes) {
         OAuth2Config oauth2Config = factory.getOAuth2Config();
 
         String csrf = oauth2Config.generateCSRFToken();

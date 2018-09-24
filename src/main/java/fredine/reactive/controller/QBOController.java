@@ -13,7 +13,6 @@ import com.intuit.oauth2.client.OAuth2PlatformClient;
 import com.intuit.oauth2.data.BearerTokenResponse;
 import com.intuit.oauth2.exception.OAuthException;
 import fredine.reactive.client.OAuth2PlatformClientFactory;
-import fredine.reactive.client.SessionTokenStore;
 import fredine.reactive.client.TokenStore;
 import io.micronaut.context.annotation.Value;
 import io.micronaut.http.HttpRequest;
@@ -22,7 +21,6 @@ import io.micronaut.http.HttpStatus;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Error;
 import io.micronaut.http.annotation.Get;
-import io.micronaut.session.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,8 +45,7 @@ public class QBOController {
     }
 
     @Get("/getCompanyInfo")
-    public CompanyInfo callQBOCompanyInfo(Session session) throws NoRealmIdException, OAuthException, FMSException {
-        TokenStore tokenStore = new SessionTokenStore(session);
+    public CompanyInfo callQBOCompanyInfo(TokenStore tokenStore) throws NoRealmIdException, OAuthException, FMSException {
         String realmId = tokenStore.getRealmId().orElseThrow(NoRealmIdException::new);
     	String failureMsg="Failed";
     	String url =  intuitAccountingAPIHost + "/v3/company";

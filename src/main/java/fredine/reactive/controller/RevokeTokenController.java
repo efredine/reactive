@@ -3,12 +3,9 @@ package fredine.reactive.controller;
 import com.intuit.oauth2.client.OAuth2PlatformClient;
 import com.intuit.oauth2.data.PlatformResponse;
 import fredine.reactive.client.OAuth2PlatformClientFactory;
-import fredine.reactive.client.SessionTokenStore;
 import fredine.reactive.client.TokenStore;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
-import io.micronaut.session.Session;
-import io.micronaut.session.annotation.SessionValue;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,10 +13,6 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 
 
-/**
- * @author dderose
- *
- */
 @Controller("/")
 public class RevokeTokenController {
 
@@ -30,9 +23,8 @@ public class RevokeTokenController {
 	
 
     @Get("/revokeToken")
-    public String revokeToken(Session session) {
+    public String revokeToken(TokenStore tokenStore) {
 
-        TokenStore tokenStore = new SessionTokenStore(session);
         String failureMsg="Failed";
     	      
         try {
