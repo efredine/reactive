@@ -22,10 +22,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author dderose
@@ -59,68 +56,37 @@ public class OAuth2Controller {
 	@Get("/connectToQuickbooks")
 	public HttpResponse connectToQuickbooks(Session session) {
 		logger.info("inside connectToQuickbooks ");
-		OAuth2Config oauth2Config = factory.getOAuth2Config();
-		
-		String csrf = oauth2Config.generateCSRFToken();
-		session.put("csrfToken", csrf);
-		try {
-			List<Scope> scopes = new ArrayList<Scope>();
-			scopes.add(Scope.Accounting);
-			URI finalURI = new URI(oauth2Config.prepareUrl(scopes, redirectUri, csrf));
-            return HttpResponseFactory.INSTANCE.status(HttpStatus.FOUND)
-                    .headers((headers) ->
-                            headers.location(finalURI)
-                    );
-		} catch (URISyntaxException | InvalidRequestException e) {
-			logger.error("Exception calling connectToQuickbooks ", e);
-		}
-		return null;
+		return getAuthorization(session, Collections.singletonList(Scope.Accounting));
 	}
 
 	@Get("/signInWithIntuit")
 	public HttpResponse signInWithIntuit(Session session) {
 		logger.info("inside signInWithIntuit ");
-		OAuth2Config oauth2Config = factory.getOAuth2Config();
-		
-		String csrf = oauth2Config.generateCSRFToken();
-		session.put("csrfToken", csrf);
-		
-		try {
-			List<Scope> scopes = new ArrayList<Scope>();
-			scopes.add(Scope.OpenIdAll);
-            URI finalURI = new URI(oauth2Config.prepareUrl(scopes, redirectUri, csrf));
-            return HttpResponseFactory.INSTANCE.status(HttpStatus.FOUND)
-                    .headers((headers) ->
-                            headers.location(finalURI)
-                    );
-		} catch (URISyntaxException | InvalidRequestException e) {
-			logger.error("Exception calling signInWithIntuit ", e);
-		}
-		return null;
-		
+		return getAuthorization(session, Collections.singletonList(Scope.OpenIdAll));
 	}
 
 	@Get("/getAppNow")
 	public HttpResponse getAppNow(Session session) {
-	    TokenStore tokenStore = new SessionTokenStore(session);
-		logger.info("inside getAppNow "  );
-		OAuth2Config oauth2Config = factory.getOAuth2Config();
-		
-		String csrf = oauth2Config.generateCSRFToken();
-		tokenStore.setCSRFToken(csrf);
+        logger.info("inside getAppNow "  );
+        return getAuthorization(session, Arrays.asList(Scope.OpenIdAll, Scope.Accounting));
+	}
 
-		try {
-			List<Scope> scopes = new ArrayList<>();
-			scopes.add(Scope.OpenIdAll);
-			scopes.add(Scope.Accounting);
+	private HttpResponse getAuthorization(Session session, List<Scope> scopes) {
+        TokenStore tokenStore = new SessionTokenStore(session);
+        OAuth2Config oauth2Config = factory.getOAuth2Config();
+
+        String csrf = oauth2Config.generateCSRFToken();
+        tokenStore.setCSRFToken(csrf);
+
+        try {
             URI finalURI = new URI(oauth2Config.prepareUrl(scopes, redirectUri, csrf));
-            return HttpResponseFactory.INSTANCE.status(HttpStatus.FOUND)
+            return HttpResponse.status(HttpStatus.FOUND)
                     .headers((headers) ->
                             headers.location(finalURI)
                     );
-		} catch (URISyntaxException | InvalidRequestException e) {
-			logger.error("Exception calling getAppNow ", e);
-		}
-		return null;
-	}
+        } catch (URISyntaxException | InvalidRequestException e) {
+            logger.error("Exception authorizing", e);
+        }
+        return null;
+    }
 }
