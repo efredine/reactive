@@ -4,9 +4,10 @@
   <title>OAuth2 Sample App - Intuit</title>
   <link rel="stylesheet" type="text/css" href="/static/css/style.css"/>
   <script>
+
     if(window.opener) {
-      window.opener.location.href = '/connected';
-      window.close()
+        window.opener.location.href = '/connected';
+        window.close()
     }
 
     function apiCall(url) {
@@ -19,18 +20,6 @@
         }).then(function(text) {
             result.textContent = text;
         });
-    }
-
-    function getCompanyInfo() {
-        apiCall('/getCompanyInfo');
-    }
-
-    function revokeCall() {
-        apiCall('/revokeToken');
-    }
-
-    function refreshCall() {
-        apiCall('/refreshToken');
     }
 
   </script>
@@ -47,9 +36,9 @@
   </div>
   
   <div>
-    <button onclick="getCompanyInfo()">QuickBooks API Call</button>
-    <button onclick="refreshCall()">Refresh Token Call</button>
-    <button onclick="revokeCall()">Revoke Token Call</button>
+    <button onclick="apiCall('/getCompanyInfo')">QuickBooks API Call</button>
+    <button onclick="apiCall('/refreshToken')">Refresh Token Call</button>
+    <button onclick="apiCall('/revokeToken')">Revoke Token Call</button>
     <br /><br />
     <div><code id="result"></code></div>
     </div>
