@@ -12,6 +12,6 @@ public interface TokenStore {
     String getAccessToken();
     void setAccessToken(String accessToken);
 
-    Optional<String> getRealmId();
+    String getRealmId();
     void setRealmId(String realmId);
 }

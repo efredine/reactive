@@ -43,8 +43,8 @@ public class SessionTokenStore implements TokenStore {
     }
 
     @Override
-    public Optional<String> getRealmId() {
-        return this.session.get("realmId").map(realmId -> (String) realmId);
+    public String getRealmId() {
+        return getRequiredValueByName("realmId");
     }
 
     @Override
