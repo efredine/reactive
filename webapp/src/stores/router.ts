@@ -6,6 +6,10 @@ export function startRouter(viewStore: ViewStore) {
 
   const history = createHistory()
 
+  if (history.location.pathname === '/connected') {
+    viewStore.connect();
+  }
+
   autorun(() => {
     const path = viewStore.currentPath
     if (path !== history.location.pathname) {

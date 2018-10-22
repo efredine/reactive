@@ -9,10 +9,14 @@ export interface Props {
 @observer
 export class Connect extends React.Component<Props, object> {
   render() {
-    const {store} = this.props;
+    // const {store} = this.props;
     return (
       <div>
-        <br /><button onClick={store.connect}>Connect</button>
+        {/*<br /><button onClick={store.connect}>Connect</button>*/}
+        <br />
+        <a href="http://localhost:47977/getAppNow">
+          Get App Now
+        </a>
       </div>
     )
   }

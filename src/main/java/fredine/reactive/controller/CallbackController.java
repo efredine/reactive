@@ -78,9 +78,10 @@ public class CallbackController {
 
 	            // todo: make this configurable
 	            URI redirectURI = new URIBuilder()
+                        .setScheme("http")
                         .setHost("localhost")
                         .setPort(3000)
-                        .setScheme("http")
+                        .setPath("/connected")
                         .build();
 	            return HttpResponse.redirect(redirectURI);
 	        }

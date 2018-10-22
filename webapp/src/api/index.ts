@@ -6,7 +6,6 @@ export async function fetchJSON<T>(url: string, body?: any) {
 }
 
 export async function fetchJSONwithCredentials<T>(url: string, body?: any) {
-  console.log('fetching', url)
   const request: RequestInit = {
     body ,
     credentials: 'include',
