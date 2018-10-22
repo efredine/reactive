@@ -3,7 +3,9 @@
   "rules": {
     "interface-name": false,
     "member-access": [true, "no-public"],
-    "only-arrow-functions": false
+    "only-arrow-functions": false,
+    "no-debugger": false,
+    "no-console": false
   },
   "linterOptions": {
     "exclude": [

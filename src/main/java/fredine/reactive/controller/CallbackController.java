@@ -75,8 +75,12 @@ public class CallbackController {
 						logger.error("Exception validating id token ", e);
 					}
 	            }
+
+	            // todo: make this configurable
 	            URI redirectURI = new URIBuilder()
-                        .setPath("/connected")
+                        .setHost("localhost")
+                        .setPort(3000)
+                        .setScheme("http")
                         .build();
 	            return HttpResponse.redirect(redirectURI);
 	        }

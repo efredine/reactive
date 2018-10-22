@@ -4,3 +4,18 @@ export async function fetchJSON<T>(url: string, body?: any) {
   const result = await response.json() as T
   return result
 }
+
+export async function fetchJSONwithCredentials<T>(url: string, body?: any) {
+  console.log('fetching', url)
+  const request: RequestInit = {
+    body ,
+    credentials: 'include',
+    headers: {
+      Accept: "application/json",
+    },
+    method: body ? "POST" : "GET",
+  }
+  const response = await fetch(url, request)
+  const result = await response.json() as T
+  return result
+}

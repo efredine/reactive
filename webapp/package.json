@@ -3,13 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "director": "^1.2.8",
+    "history": "^4.7.2",
     "mobx": "^5.5.0",
     "mobx-react": "^5.2.8",
     "mobx-react-devtools": "^6.0.3",
+    "mobx-utils": "^5.0.2",
     "react": "^16.5.2",
     "react-dom": "^16.5.2",
     "react-scripts-ts": "3.1.0"
   },
+  "proxy": "http://localhost:47977",
   "scripts": {
     "start": "react-scripts-ts start",
     "build": "react-scripts-ts build",
